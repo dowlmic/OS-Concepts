@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <string.h>
 
@@ -11,7 +12,8 @@ int main()
     // use these variables
     pid_t pid, child;
     int status;
-    char input[30];
+    char input[100]; // User input
+    struct rusage usage; // struct to pass to wait3 to get the system resource use
 
     while(1)
     {
@@ -25,8 +27,8 @@ int main()
             perror("fork failure");
             exit(1);
         }
-        else if (pid == 0) { // If Child
-            char* param_array[50] = {NULL}; // Initialize array to null
+        else if (pid == 0) { // If Child;
+            char* param_array[100] = {NULL}; // Initialize array to null
             char * token = strtok(input, " \n"); // get token
             int index = 0;
             while (token != NULL) // Convert input into array of strings
@@ -42,7 +44,9 @@ int main()
             exit(0);
         }
         else {
-            child = wait(&status);
+            // Using resource.h and getrusage to gather the system resources used. wait3 can fill that in automatically
+            child = wait3(&status,0, &usage); // Wait for the child process to end and get the status and resource usage
+            printf("Involuntary Context Switches: %ld\nSystem CPU Time Used: %ldus\nUser CPU Time Used: %ldus \n",usage.ru_nivcsw, usage.ru_stime.tv_usec, usage.ru_utime.tv_usec); // Print out the resource usage
         }
     }
     return 0;
