@@ -1,3 +1,10 @@
+/* Lab 2 Program: Simple Shell
+ * Authors: Lucas Ordaz and Michelle Dowling
+ * 
+ * This program is designed to simulate a simple shell for the user as well as
+ * reporting resource utilization statistics for each command run
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -14,6 +21,9 @@ int main()
     int status;
     char input[100]; // User input
     struct rusage usage; // struct to pass to wait3 to get the system resource use
+
+    // Prompt the user for a command
+    printf("Welcome to Simple Shell! You can enter in basic commands, or quit using \"quit\"\n\n");
 
     while(1)
     {
@@ -44,9 +54,16 @@ int main()
             exit(0);
         }
         else {
-            // Using resource.h and getrusage to gather the system resources used. wait3 can fill that in automatically
-            child = wait3(&status,0, &usage); // Wait for the child process to end and get the status and resource usage
-            printf("Involuntary Context Switches: %ld\nSystem CPU Time Used: %ldus\nUser CPU Time Used: %ldus \n",usage.ru_nivcsw, usage.ru_stime.tv_usec, usage.ru_utime.tv_usec); // Print out the resource usage
+            // Using resource.h and getrusage to gather the system resources
+            // used. wait3 can fill that in automatically
+
+            // Wait for the child process to end and get the status and resource usage
+            child = wait3(&status,0, &usage);
+
+            // Print the resource usage
+            printf("Involuntary Context Switches: %ld\n", usage.ru_nivcsw);
+            printf("System CPU Time Used: %ldus\n", usage.ru_stime.tv_usec);
+            printf("User CPU Time Used: %ldus \n\n", usage.ru_utime.tv_usec);
         }
     }
     return 0;
