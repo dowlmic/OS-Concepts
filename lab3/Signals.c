@@ -1,3 +1,11 @@
+/* Signals.c
+ *
+ * Authors: Lucas Ordaz and Michelle Dowling
+ *
+ * This program is designed to show how to send and receive signals between two
+ * processes.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -6,37 +14,42 @@
 #include <signal.h>
 #include <time.h>
 
+// Global variable to store the PID of the child thread
 pid_t child;
 
+// Method to ensure a gracefull shutdown
 void GracefuleClose(int sig){
-    printf ("GRACEFUL SHUTDOWN\n");
+    printf (" received. That't it, I'm shutting down\n");
     kill(child, SIGKILL);
-    // this is where shutdown code would be inserted
     exit(0); 
 }
 
+// Method to handle incoming user signals
 void UserSignal(int sig) {
     if(sig == 10)
-	printf("Received SIGUSR1 \n");
+	printf("received a SIGUSR1 signal\nwaiting...\t");
     else
-	printf("Received SIGUSR2 \n");
+	printf("received a SIGUSR2 signal\nwaiting...\t");
     fflush(stdout);
 }
 
 int main()
 { 
 
-    // use these variables
+    // Variables to store the current PID and the parent's PID
     pid_t pid, parent;
     parent = getpid();
+
+    // Check to make sure that the fork executed properly
     if ((pid = fork()) < 0) {
         perror("fork failure");
         exit(1);
     }
+
+    // Code for the child process
     else if (pid == 0) {
-	printf("Child Created\n");
-	fflush(stdout);
-        // Generate SIGNAL HERE
+
+        // Generate random signal after a random interval
 	srand(time(NULL));
 	int r;
 	int sleepTime;
@@ -49,20 +62,22 @@ int main()
 			kill(parent, SIGUSR2);
 		printf("Sleeping %d", sleepTime);
 		sleep(sleepTime);
-
-	        //write (STDOUT_FILENO, (const void *) str, (size_t) strlen (str) + 1);
 	}
     }
+
+    // Parent code
     else {
-	printf("Parent Waiting\n");
+        // Print info
+	printf("spawned child PID# %d\n", pid);
+	printf("waiting...\t");
 	fflush(stdout);
+
+        // Set child PID and set up signal handlers
 	child = pid;
 	signal(SIGINT, GracefuleClose);
         signal(SIGUSR1, UserSignal);
 	signal(SIGUSR2, UserSignal);
 	while(1);
-	//read (STDIN_FILENO, (void *) str, (size_t)  sizeof (str));
-	// REACT TO SIGNAL HERE
     }
     return 0;
 } 
