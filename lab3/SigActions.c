@@ -1,3 +1,11 @@
+/* SigActions.c
+ *
+ * Authors: Lucas Ordaz and Michelle Dowling
+ *
+ * This program is designed to show how sigaction may be used in place of
+ * signal
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -6,6 +14,8 @@
 #include <signal.h>
 #include <time.h>
 
+// Global variables to keep track of the number of children, an array of
+// children, and the parent
 int childCount;
 int *children;
 int parent;
@@ -14,9 +24,13 @@ int parent;
 void EventHandler(int signal, siginfo_t *info, void *ptr)
 {
     int pid = getpid();
-    if(signal == SIGINT && pid == parent) // If the signal is SIGINT terminate both child processes
+
+    // If the signal is SIGINT, terminate both child processes
+    if(signal == SIGINT && pid == parent)
     {
         printf(" received. Initiating graceful shutdown\n");
+
+        // Iterate through each child and terminate them
         int x;
         for(x = 0; x < childCount; x++)
         {
@@ -26,30 +40,44 @@ void EventHandler(int signal, siginfo_t *info, void *ptr)
         }
         exit(0);
     }
+
+    // If the signal is not SIGINT for the parent, handle it appropriately
     else
     {
         switch(signal)
         {
+            // Print info for SIGUSR1
             case SIGUSR1:
-                printf("%lu generated signal SIGUSR1\n", (unsigned long)info->si_pid); // Print the signal received
+                printf("%lu generated signal SIGUSR1\n", (unsigned long)info->si_pid);
                 break;
+
+            // Print info for SIGUSR2
             case SIGUSR2:
-                printf("%lu generated signal SIGUSR2\n", (unsigned long)info->si_pid); // Print the signal received
+                printf("%lu generated signal SIGUSR2\n", (unsigned long)info->si_pid);
                 break;
+
+            // Print info for SIGINT and kill the child process
             case SIGINT:
-                printf("%d generated signal SIGINT, Killing Process\n", pid); // Children received SIGINT
+                printf("%d generated signal SIGINT, Killing Process\n", pid);
                 exit(0);
                 break;
+
+            // Print info for SIGKILL
             case SIGKILL:
-                printf("%lu generated signal SIGKILL\n", (unsigned long)info->si_pid); // Print the signal received
+                printf("%lu generated signal SIGKILL\n", (unsigned long)info->si_pid);
                 break;
+
+            // Print info for SIGCHLD
             case SIGCHLD:
-                printf("%lu generated signal SIGCHLD\n", (unsigned long)info->si_pid); // Print the signal received
+                printf("%lu generated signal SIGCHLD\n", (unsigned long)info->si_pid);
                 break;
+
+            // Catch any other signals and print info
             default:
-                printf("%lu generated signal unknown signal %d\n", (unsigned long)info->si_pid, signal); // Print the signal received
+                printf("%lu generated signal unknown signal %d\n", (unsigned long)info->si_pid, signal);
         }
     }
+    // Ensure info gets printed
     fflush(stdout);
 }
 
@@ -57,13 +85,14 @@ void EventHandler(int signal, siginfo_t *info, void *ptr)
 void ChildRunProcess(int parent, int pid)
 {
     printf("Child Created %d\n", pid);
+
+    // Waits a random amount of time and randomly sends SIGUSR1 or SIGUSR2
     srand(time(NULL));
     int r;
     int sleepTime;
     while(1) {
-        r = rand() % 2; // Generates a random number
-        sleepTime = (rand() % 4)+1; // Generates sleep time
-        fflush(stdout);
+        r = rand() % 2;
+        sleepTime = (rand() % 4)+1;
         if(r == 0)
             kill(parent,SIGUSR1);
         else
@@ -75,9 +104,11 @@ void ChildRunProcess(int parent, int pid)
 
 int main(int argc, char *argv[])
 {
+    // Define sig to be the same as sigaction
     struct sigaction sig;
 
-    // Global assign
+    // Assign global variables
+    parent = getpid();
     childCount = (argv[1] == NULL) ? 2 : atoi(argv[1]);
     children = realloc(NULL, childCount * sizeof(pid_t));
 
@@ -92,8 +123,6 @@ int main(int argc, char *argv[])
         printf("Could not register event for SIGCHILD");
     if(sigaction(SIGINT, &sig, NULL) < 0) // Register SIGINT
         printf("Could not register event for SIGINT");
-
-    parent = getpid();
 
     // Create children
     int x;
@@ -118,6 +147,8 @@ int main(int argc, char *argv[])
         }
     }
 
+    // Run continuously
     while(1);
+
     return 0;
 }
