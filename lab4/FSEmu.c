@@ -1,10 +1,11 @@
-/* FSEmu.c
+/* 
+ * FSEmu.c
  *
  * Authors: Lucas Ordaz and Michelle Dowling
  *
  * This program is designed to emulate a file system and user multiple threads
  * to retreive the files. Files that are 'cached' are retrieved faster than
-  * 'non-cached' files.
+ * 'non-cached' files.
  */
 
 #include <stdio.h>
@@ -47,7 +48,8 @@ int main(){
     while(1){
         fgets(input, 50, stdin);
         if ((status = pthread_create(&thread, NULL, find_file, input)) != 0) {
-            fprintf(stderr, "thread create error %d: %s\n", status, strerror(status));
+            fprintf(stderr, "thread create error %d: %s\n",
+		status, strerror(status));
             exit(1);
         }
         if ((status = pthread_detach(thread)) != 0) {
@@ -56,16 +58,19 @@ int main(){
         numRequests++;
     }
 
-    pthread_mutex_destroy(&funcLock); // Clean up mutex if program exits normally
+    // Clean up mutex if program exits normally
+    pthread_mutex_destroy(&funcLock);
     exit(0);
 }
 
 // Finds the file requested
 void* find_file(void* arg){
     // Copy filename from argument
-    // Without it there is a race condition where the next request can overwrite the argument
+    // Without it there is a race condition where the next request can
+    // overwrite the argument
     char file[50];
     strcpy(file, (char*)arg);
+
     // Simulate a chached file vs a non-cached file
     int chachedFile = rand() % 5;
     int sleepTime = 1;
@@ -73,8 +78,8 @@ void* find_file(void* arg){
 	sleep(sleepTime);
     }
     else {
-            sleepTime = (rand() % 3) + 7;
-            sleep(sleepTime);
+        sleepTime = (rand() % 3) + 7;
+        sleep(sleepTime);
     }
 
     // Simulate file retrieval
@@ -82,9 +87,11 @@ void* find_file(void* arg){
     return NULL;
 }
 
-// SIGINT Hanlder, prints the number of files requested and then exits the program
+// SIGINT Hanlder, prints the number of files requested and then exits the
+// program
 void graceful_close(){
     float avgAccessTime = 0;
+
     // Print Stats
     printf (" received. %d files were requested. \n", numRequests);
     printf("Number of requests fullfiled %d\n", requestFulfilled);
