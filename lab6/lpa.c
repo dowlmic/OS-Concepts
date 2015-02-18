@@ -1,3 +1,11 @@
+/*
+ * lpa.c
+ * 
+ * Authors: Michelle Dowling and Lucas Ordaz
+ *
+ * This program uses semaphores to control access to shared memory.
+ *
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -20,17 +28,20 @@ int main (int argc, char *argv[])
 
       // get value of loop variable (from command-line argument)
    loop = atoi(argv[1]);
+   // Create the semaphore
    semId = semget(IPC_PRIVATE, 1, 0666|IPC_CREAT);
    if (semId  <= 0){
       perror("Error setting up semaphore");
       exit(1);
    }
-   printf("%d\n", semId);
+   
+   // Instantiate the semaphore
    if ((semctl(semId, 0, SETVAL, 1)) < 0) {
       perror("Error instantiating semaphore");
       exit(1);	
    }
 
+   // Create semaphore buffers
    sbufLock.sem_num = 0;
    sbufLock.sem_op = -1;
    sbufLock.sem_flg = 0;
@@ -53,11 +64,13 @@ int main (int argc, char *argv[])
 
    if (!(pid = fork())) {
       for (i=0; i<loop; i++) {
+               // Lock
                semop(semId, &sbufLock, 1);
                // swap the contents of shmPtr[0] and shmPtr[1]
                temp = shmPtr[0];
                shmPtr[0] = shmPtr[1];
                shmPtr[1] = temp;
+               // Unlock
                semop(semId, &sbufUnlock, 1);
       }
       if (shmdt (shmPtr) < 0) {
@@ -68,11 +81,13 @@ int main (int argc, char *argv[])
    }
    else
       for (i=0; i<loop; i++) {
+               // Lock
                semop(semId, &sbufLock, 1);
                // swap the contents of shmPtr[1] and shmPtr[0]
                temp = shmPtr[0];
                shmPtr[0] = shmPtr[1];
                shmPtr[1] = temp;
+               // Unlock
                semop(semId, &sbufUnlock, 1);
       }
 
@@ -87,6 +102,7 @@ int main (int argc, char *argv[])
       perror ("can't deallocate\n");
       exit(1);
    }
+   // Semaphore cleanup
    semctl(semId, 0, IPC_RMID);
 
 
