@@ -1,0 +1,29 @@
+Script started on Thu 02 Apr 2015 03:40:34 PM EDT
+[?1034h[eos20:~/CIS452/lab12]$ stat prog1.c 
+  File: ‘prog1.c’
+  Size: 490       	Blocks: 8          IO Block: 1048576 regular file
+Device: 27h/39d	Inode: 80085378    Links: 1
+Access: (0644/-rw-r--r--)  Uid: ( 5035/  ordazl)   Gid: (  500/   users)
+Access: 2015-04-02 15:35:33.233640923 -0400
+Modify: 2015-04-02 15:39:55.404863537 -0400
+Change: 2015-04-02 15:39:55.404863537 -0400
+ Birth: -
+[eos20:~/CIS452/lab12]$ ./a.out prog1.c 
+value is: 33188
+Is Directory False
+[eos20:~/CIS452/lab12]$ stat test/
+  File: ‘test/’
+  Size: 4096      	Blocks: 8          IO Block: 1048576 directory
+Device: 27h/39d	Inode: 87034694    Links: 2
+Access: (0755/drwxr-xr-x)  Uid: ( 5035/  ordazl)   Gid: (  500/   users)
+Access: 2015-04-02 15:36:02.525777532 -0400
+Modify: 2015-04-02 15:36:02.525777532 -0400
+Change: 2015-04-02 15:36:02.525777532 -0400
+ Birth: -
+[eos20:~/CIS452/lab12]$ ./a.out test/
+value is: 16877
+Is Directory True
+[eos20:~/CIS452/lab12]$ exit
+exit
+
+Script done on Thu 02 Apr 2015 03:41:00 PM EDT
