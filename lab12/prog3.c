@@ -3,11 +3,13 @@ Authors: Michelle Dowling and Lucas Ordaz
 Date: 4/2/2015
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <errno.h>
 #include <string.h>
+
 int main(int argc, char** argv)
 {
 	DIR *dirPtr;
@@ -40,16 +42,27 @@ int main(int argc, char** argv)
 		
 		}
 	}
-
 	// Open the directory
 	dirPtr = opendir (searchDir);
-
 	// Go through each tuple
 	while ((entryPtr = readdir (dirPtr))){
-		// Get the status
-		lstat(entryPtr->d_name, &statBuf);
+		
+
+		char* fullPath = strdup(searchDir);
+		// Apend slash if it doesn't exist
+		if(fullPath[strlen(fullPath)-1] != '/'){
+			strcat(fullPath, "/");
+		}
+		// Append the search directory for the full path
+		strcat(fullPath, entryPtr->d_name);
+
 		if(strcmp(entryPtr->d_name, ".") != 0 
 			&& strcmp(entryPtr->d_name, "..") != 0){
+			// Error Checking and get stats
+			if(lstat(fullPath, &statBuf) < 0){
+				perror("Error");
+				exit(1);
+			}
 			// Print File Name
 			printf ("%s\t", entryPtr->d_name);
 			// Print file size in blocks
